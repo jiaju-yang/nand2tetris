@@ -12,3 +12,55 @@
 // the screen should remain fully clear as long as no key is pressed.
 
 // Put your code here.
+
+// while True:
+//     keyboard = @KBD
+//     if keyboard != 0:
+//         screen = black
+//     else:
+//         screen = white
+
+(LOOP)
+    @i
+    M=0
+    @KBD
+    D=M
+    @WHITE
+    D;JEQ
+(BLACK)
+    @i
+    D=M
+    @8192
+    D=A-D
+    @LOOP
+    D;JEQ
+    @SCREEN
+    D=A
+    @i
+    A=D+M
+    M=-1
+    @i
+    M=M+1
+    @BLACK
+    0;JMP
+
+(WHITE)
+    @i
+    D=M
+    @8192
+    D=A-D
+    @LOOP
+    D;JEQ
+    @SCREEN
+    D=A
+    @i
+    A=D+M
+    M=0
+    @i
+    M=M+1
+    @WHITE
+    0;JMP
+    
+(END)
+    @END
+    0;JMP
