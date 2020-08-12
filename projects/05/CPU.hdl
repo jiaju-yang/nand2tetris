@@ -39,5 +39,35 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    And(a=instruction[15], b=true, out=isComputation);
+    Not(in=isComputation, out=isData);
+
+    And(a=isComputation, b=instruction[5], out=outToA);
+    Or(a=isData, b=outToA, out=changeA);
+    Mux16(a=lastOutM, b=instruction, sel=isData, out=instructionOrOutM);//Mux before A
+    ARegister(in=instructionOrOutM, load=changeA, out=AOut, out[0..14]=addressM);
+
+    Mux16(a=AOut, b=inM, sel=instruction[12], out=AOrM);//Mux before ALU
+    
+    And(a=isComputation, b=instruction[4], out=changeD);
+    DRegister(in=lastOutM, load=changeD, out=DOut);
+
+    ALU(x=DOut, y=AOrM, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=outM, zr=zr, ng=ng, out=lastOutM);
+
+    And(a=instruction[3], b=isComputation, out=writeM);
+
+    And(a=isComputation, b=instruction[2], out=j1JumpCondition);
+    And(a=j1JumpCondition, b=ng, out=j1Jump);
+    
+    And(a=isComputation, b=instruction[1], out=j2JumpCondition);
+    And(a=j2JumpCondition, b=zr, out=j2Jump);
+    
+    And(a=isComputation, b=instruction[0], out=j3JumpCondition);
+    Or(a=ng, b=zr, out=notGreaterThanZero);
+    Not(in=notGreaterThanZero, out=greaterThanZero);
+    And(a=j3JumpCondition, b=greaterThanZero, out=j3Jump);
+
+    Or(a=j1Jump, b=j2Jump, out=j1j2Jump);
+    Or(a=j1j2Jump, b=j3Jump, out=jump);
+    PC(in=AOut, load=jump, inc=true, reset=reset, out[0..14]=pc);
 }
