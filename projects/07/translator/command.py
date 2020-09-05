@@ -63,7 +63,7 @@ class Arithmetic(Command):
         assemble = arithmetic_types[self.arithmetic_type]
         labels = {}
         for i, _ in enumerate((field for _, field, _, _ in fmt.parse(assemble)
-                              if field and field.startswith('label')), start=1):
+                               if field and field.startswith('label')), start=1):
             labels['label'+str(i)] = Command.new_label()
         return assemble.format(**labels)+'//'+self.arithmetic_type
 
@@ -107,10 +107,31 @@ class MemoryAccess(Command):
                 'Illegal syntax of memory access operation: "{} {} {}"!'.format(access_type, segment, index))
         self.access_type, self.segment, self.index = access_type, segment, index
         if segment == 'pointer':
-            self.this_or_that ='THIS' if index == '0' else 'THAT'
+            self.this_or_that = 'THIS' if index == '0' else 'THAT'
         super().__init__(command_str, domain)
 
     def assembly_code(self):
         assemble = memory_access_combination[self.access_type][self.segment]
         return assemble.format(**{field: getattr(self, field)
                                   for _, field, _, _ in fmt.parse(assemble) if field})+'//'+' '.join([self.access_type, self.segment, str(self.index)])
+
+
+branch_usage = {
+    'goto': '\n'.join(['@{}', '0;JMP']),
+    'if-goto': '\n'.join(['@SP', 'AM=M-1', 'D=M', '@{}', 'D;JNE']),
+    'label': '({})'
+}
+
+
+class Branch(Command):
+    def __init__(self, command_str, domain):
+        usage, label_name = command_str
+        if usage not in branch_usage:
+            raise ValueError(
+                'Illegal syntax of branch operation: "{} {}"!'.format(usage, label_name))
+        self.usage, self.label_name = usage, label_name
+        super().__init__(command_str, domain)
+
+    def assembly_code(self):
+        assemble = branch_usage[self.usage]
+        return assemble.format(self.label_name)

@@ -1,4 +1,4 @@
-from .command import Arithmetic, MemoryAccess
+from .command import Arithmetic, MemoryAccess, Branch
 
 
 class Parser:
@@ -8,7 +8,7 @@ class Parser:
             formatted = line.strip()
             if not formatted or formatted.startswith('/'):
                 continue
-            formatted.split('//', 1)[0].strip() # Remove comments after code
+            formatted = formatted.split('//', 1)[0].strip() # Remove comments after code
             formatted = ' '.join(formatted.split()) # Remove multiple spaces
             commands_str.append(formatted)
         self.commands_str = commands_str
@@ -20,6 +20,10 @@ class Parser:
             return Arithmetic(instructions, self.domain)
         elif len(instructions) == 3:
             return MemoryAccess(instructions, self.domain)
+        elif len(instructions) == 2:
+            return Branch(instructions, self.domain)
+        else:
+            raise ValueError('None supported command: {}'.format(' '.join(instructions)))
 
     def __iter__(self):
         return ParserIterator(self)
