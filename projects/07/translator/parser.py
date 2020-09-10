@@ -1,4 +1,4 @@
-from .command import Arithmetic, MemoryAccess, Branch
+from .command import Arithmetic, MemoryAccess, Branch, FunctionDeclare, FunctionReturn, FunctionCall
 
 
 class Parser:
@@ -17,13 +17,20 @@ class Parser:
     def parse_command(self, command_str, line):
         instructions = command_str.split(' ')
         if len(instructions) == 1:
-            return Arithmetic(instructions, self.domain)
+            if instructions[0] == 'return':
+                return FunctionReturn(instructions, self.domain)
+            else:
+                return Arithmetic(instructions, self.domain)
         elif len(instructions) == 3:
-            return MemoryAccess(instructions, self.domain)
+            if instructions[0] =='function':
+                return FunctionDeclare(instructions, self.domain)
+            elif instructions[0] =='call':
+                return FunctionCall(instructions, self.domain)
+            elif instructions[0] in {'push', 'pop'}:
+                return MemoryAccess(instructions, self.domain)
         elif len(instructions) == 2:
             return Branch(instructions, self.domain)
-        else:
-            raise ValueError('None supported command: {}'.format(' '.join(instructions)))
+        raise ValueError('None supported command: {}'.format(' '.join(instructions)))
 
     def __iter__(self):
         return ParserIterator(self)
